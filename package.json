@@ -2,13 +2,15 @@
   "name": "dev-meet-up",
   "version": "1.0.0",
   "description": "all developer meetup point",
-  "main": "index.js",
+  "main": "app.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/app"
   },
   "author": "sushil gupta",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
   }
 }
