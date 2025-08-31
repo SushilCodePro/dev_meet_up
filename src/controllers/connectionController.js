@@ -1,7 +1,7 @@
 import ConnectionRequest from "../models/connectionModel.js";
 import User from "../models/userModel.js";
 
-export const request = async (req, res) => {
+export const sender = async (req, res) => {
     try {
         const fromUserId = req.user.id;
         const toUserId = req.params.toUserId;
@@ -41,3 +41,41 @@ export const request = async (req, res) => {
     }
 
 }
+
+export const receiver = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { status, requestedId } = req.params;
+
+    const isAllowedStatus = ["accepted", "rejected"];
+    if (!isAllowedStatus.includes(status)) {
+      return res.status(400).json({ message: "Status is not valid!" });
+    }
+
+    const connectionRequest = await ConnectionRequest.findOneAndUpdate(
+      { _id: requestedId, toUserId: userId, status: "interested" },
+      { $set: { status } },
+      { new: true } // return updated document
+    );
+
+    // const connectionRequest = await ConnectionRequest.findOne({
+    //     _id: requestedId,
+    //     toUserId: userId,
+    //     status: "interested",
+    // });
+
+    // connectionRequest.status = status; 
+    // await connectionRequest.save(); 
+
+    if (!connectionRequest) {
+      return res.status(404).json({ message: "Connection request not found!" });
+    }
+
+    res.status(200).json({
+      message: `Connection request ${status} successfully!`,
+      data: connectionRequest,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
