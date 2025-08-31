@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
-import profileRoutes from "./routes/profileRoutes.js"
+import profileRoutes from "./routes/profileRoutes.js";
+import connectionRoutes from "./routes/connectionRoutes.js";
 import connectDB from "./config/db.js";
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(cookieParser());
 // Routes
 app.use("/user/auth", authRoutes);
 app.use("/user/profile", profileRoutes);
+app.use("/user/request", connectionRoutes);
 
 connectDB();
 // Server listen
