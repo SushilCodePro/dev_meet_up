@@ -6,12 +6,14 @@ import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import connectionRoutes from "./routes/connectionRoutes.js";
 import connectDB from "./config/db.js";
+import cors from "cors"; 
 
 dotenv.config();
 
 const app = express();
 
 // Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
