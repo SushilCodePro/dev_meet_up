@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 // Signup
 export const signup = async (req, res) => {
-    // console.log('req in signup', req);
+  // console.log('req in signup', req);
   try {
     const { firstName, lastName, emailId, password, gender, age } = req.body;
 
@@ -16,13 +16,13 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new user
-    const user = await User.create({ 
-      firstName, 
-      lastName, 
-      emailId, 
-      password: hashedPassword, 
-      gender, 
-      age 
+    const user = await User.create({
+      firstName,
+      lastName,
+      emailId,
+      password: hashedPassword,
+      gender,
+      age
     });
     res.status(201).json({ message: "User registered successfully", user });
   } catch (error) {
@@ -49,7 +49,7 @@ export const signin = async (req, res) => {
     });
 
     res.cookie("token", token, { httpOnly: true, secure: false })
-       .json({ message: "Signin successful", token });
+      .json({ message: "Signin successful", token });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
