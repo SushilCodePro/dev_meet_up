@@ -23,3 +23,35 @@ export const profile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // from verifyToken middleware
+
+    // Take input fields from request body
+    const { firstName, lastName, emailId, age, gender } = req.body;
+
+    // Validate (basic)
+    if (!firstName || !lastName || !emailId) {
+      return res.status(400).json({ message: "First name, last name, and email are required" });
+    }
+
+    // Update user in DB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, emailId, age, gender },
+      { new: true, runValidators: true, select: "-password" } // return updated doc & exclude password
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

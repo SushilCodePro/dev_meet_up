@@ -7,16 +7,16 @@ export const sender = async (req, res) => {
         const toUserId = req.params.toUserId;
         const status = req.params.status;
 
-        // Prevent sending connection request to self
+        // 1 Prevent sending connection request to self
         if (fromUserId.toString() === toUserId) {
             return res.status(400).json({ message: "You cannot send a request to yourself" });
         }
-
+        // 2
         let isAllowedStatus = ["interested", "ignored"];
         if (!isAllowedStatus.includes(status)) {
             return res.status(400).json({ message: "Invalid Status: " + status });
         }
-
+        // 3
         const extistingConnectionRequest = await ConnectionRequest.findOne({
             $or: [
                 { fromUserId, toUserId },
@@ -26,7 +26,7 @@ export const sender = async (req, res) => {
         if (extistingConnectionRequest) {
             return res.status(400).json({ message: "Connection Request already exist" });
         }
-
+        // 4
         const user = await User.findById(toUserId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
