@@ -13,7 +13,7 @@ export const myRequest = async (req, res) => {
         });
 
         if (!gotRequest || gotRequest.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "No connection requests found",
                 data: [],
             });
@@ -38,13 +38,13 @@ export const myConnection = async (req, res) => {
                 { fromUserId: userId, status: "accepted" }
             ]
         }).populate([
-            { path: "fromUserId", select: "firstName lastName age" },
-            { path: "toUserId", select: "firstName lastName age" }
+            { path: "fromUserId", select: "firstName lastName age gender" },
+            { path: "toUserId", select: "firstName lastName age gender" }
         ]);
 
 
         if (!connection || connection.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "No connection requests found",
                 data: [],
             });
