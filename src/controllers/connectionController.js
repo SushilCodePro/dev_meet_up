@@ -46,6 +46,7 @@ export const receiver = async (req, res) => {
   try {
     const userId = req.user.id;
     const { status, requestedId } = req.params;
+    console.log("requested Id", requestedId);
 
     const isAllowedStatus = ["accepted", "rejected"];
     if (!isAllowedStatus.includes(status)) {

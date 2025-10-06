@@ -41,6 +41,7 @@ export const updateProfile = async (req, res) => {
       userId,
       { firstName, lastName, emailId, age, gender },
       { new: true, runValidators: true, select: "-password" } // return updated doc & exclude password
+      // runValidators: By default, validators(schema validations) only run on save() / create(), not on update.
     );
 
     if (!updatedUser) {

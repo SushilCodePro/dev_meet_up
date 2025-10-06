@@ -44,12 +44,10 @@ export const signin = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
     // Generate JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {expiresIn: "1d"});
 
-    res.cookie("token", token, { httpOnly: true, secure: false })
-      .json(user);
+    res.cookie("token", token, { httpOnly: true, secure: false }).json(user);
+    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
