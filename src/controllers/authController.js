@@ -46,7 +46,7 @@ export const signin = async (req, res) => {
     // Generate JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {expiresIn: "1d"});
 
-    res.cookie("token", token, { httpOnly: true, secure: true ,sameSite: "none"})
+    res.cookie("token", token, { httpOnly: true, secure: true ,sameSite: "None"})
       .json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
