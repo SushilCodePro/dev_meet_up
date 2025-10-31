@@ -14,7 +14,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "https://dev-meet-up.onrender.com",
+  origin: "https://developersadda.netlify.app",
   credentials: true
 }));
 app.use(express.json());
