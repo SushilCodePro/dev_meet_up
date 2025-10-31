@@ -1,12 +1,11 @@
 import express from "express";
-import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import connectionRoutes from "./routes/connectionRoutes.js";
 import connectDB from "./config/db.js";
-import cors from "cors"; 
+import cors from "cors";
 import feedRoute from "./routes/feedRoute.js";
 
 dotenv.config();
@@ -16,7 +15,7 @@ const app = express();
 // Middlewares
 app.use(cors({
   origin: "http://localhost:5173",
-  credentials:true
+  credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
