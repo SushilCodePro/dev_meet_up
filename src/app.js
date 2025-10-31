@@ -14,7 +14,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://dev-meet-up.onrender.com",
   credentials: true
 }));
 app.use(express.json());
