@@ -14,7 +14,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://developersadda.netlify.app",
   credentials: true
 }));
 app.use(express.json());
@@ -25,6 +25,15 @@ app.use("/user/auth", authRoutes);
 app.use("/user/profile", profileRoutes);
 app.use("/user/request", connectionRoutes);
 app.use("/user", feedRoute);
+// auth-check endpoint (accessible immediately after login)
+app.get('/auth/check', (req, res) => {
+  // If cookie-parser is installed, req.cookies will exist
+  if (!req.cookies?.token) {
+    return res.status(401).json({ ok: false, reason: 'no_cookie' });
+  }
+  return res.json({ ok: true });
+});
+
 
 connectDB();
 // Server listen
