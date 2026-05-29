@@ -60,10 +60,17 @@ export const signin = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
     // Generate JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {expiresIn: "1d"});
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    res.cookie("token", token, { httpOnly: true, secure: true ,sameSite: "None"})
-      .json(user);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",                  // ✅ required
+      maxAge: 24 * 60 * 60 * 1000 // ✅ 1 day in milliseconds
+    }).json(user);
+
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -77,8 +84,8 @@ export const logout = async (req, res) => {
       secure: false, // only secure in prod // process.env.NODE_ENV === "production",
       sameSite: "strict", // prevent CSRF
     });
-// secure: false → the cookie will also be sent over HTTP (in local development).
-// secure: true → the cookie will only be sent by the browser over HTTPS (not HTTP).
+    // secure: false → the cookie will also be sent over HTTP (in local development).
+    // secure: true → the cookie will only be sent by the browser over HTTPS (not HTTP).
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
