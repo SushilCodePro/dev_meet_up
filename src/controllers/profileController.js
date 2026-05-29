@@ -29,13 +29,18 @@ export const updateProfile = async (req, res) => {
     const userId = req.user.id; // from verifyToken middleware
 
     // Take input fields from request body
-    const { firstName, lastName, emailId, age, gender } = req.body;
+    const { firstName, lastName, emailId, age, gender, skills, photoUrl } = req.body;
 
     // Validate (basic)
     if (!firstName || !lastName || !emailId) {
       return res.status(400).json({ message: "First name, last name, and email are required" });
     }
+    const ALLOWED_UPDATE = ['age', 'gender', 'skills', 'photoUrl']
+    const isAllowedUpdate = Object.keys(req.body).every(k => ALLOWED_UPDATE.includes(k));
 
+    if (!isAllowedUpdate) {
+      return res.status(400).json({ message: "Update is not allowed" })
+    }
     // Update user in DB
     const updatedUser = await User.findByIdAndUpdate(
       userId,

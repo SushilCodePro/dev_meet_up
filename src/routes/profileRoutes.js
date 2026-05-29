@@ -1,4 +1,4 @@
-import express from "express";
+ import express from "express";
 import { profile, updateProfile} from "../controllers/profileController.js";
 import { verifyToken } from "../middlewares/authMiddleware.js"; 
 

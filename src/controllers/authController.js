@@ -2,12 +2,25 @@ import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+// function Validator(data){
+//  const mandatoryField=["firstName","emailID",'password']
+//  const isAllowed=mandatoryField.every((k)=>Object.keys(data).includes(k)) 
+//  if(!isAllowed){
+//   throw new Error('some filed missing')
+//  }
+
+//  if(!validator.isEmail(data.emailID)){
+//   throw new Error('invalid email')
+//  }
+//  //like this write others
+// }
 // Signup
 export const signup = async (req, res) => {
   // console.log('req in signup', req);
   try {
-    const { firstName, lastName, emailId, password, gender, age } = req.body;
-
+    const { firstName, lastName, emailId, password, gender, age,photoUrl } = req.body;
+    //validate kr sakte h all data ko age jane se phle
+    //validetor.js lib use kro
     // Check if user exists
     const existingUser = await User.findOne({ emailId });
     if (existingUser) return res.status(400).json({ message: "User already exists" });
@@ -21,6 +34,7 @@ export const signup = async (req, res) => {
       lastName,
       emailId,
       password: hashedPassword,
+      photoUrl,
       gender,
       age
     });
@@ -35,6 +49,8 @@ export const signin = async (req, res) => {
   try {
     const { emailId, password } = req.body;
 
+    //validate kr sakte h all data ko age jane se phle
+    //validetor.js lib use kro
     // Check user
     const user = await User.findOne({ emailId });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });

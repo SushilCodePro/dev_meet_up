@@ -9,9 +9,9 @@ const userSchema = new mongoose.Schema({
     },
     lastName: {
         type: String,
-        required: true,
+        // required: true,
         minlength: 3,
-    },
+    }, 
     emailId: {
         type: String,
         required: true,
@@ -25,13 +25,28 @@ const userSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        required: true,
+        // required: true,
     },
     gender: {
         type: String,
-        required: true,
+        validate(value){
+            if(!['male','female', 'others'].includes(value)){
+                throw new Error("gender is not valid")
+            }
+        }
+    },
+    photoUrl: {
+        type:String
+    },
+    skills:{
+        type:[String]
+    },
+    about:{
+        type: String,
+        default:"This default about"
     }
-});
+
+},{timestamps:true});
 
 // Hash password before saving
 // userSchema.pre("save", async function (next) {
