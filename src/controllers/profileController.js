@@ -24,6 +24,15 @@ export const profile = async (req, res) => {
   }
 };
 
+// {
+//     "firstName": "Karina",
+//     "lastName": "khan",
+//     "emailId": "karina.lko5293@gmail.com",
+//     "password": "Saifalikhan@123",
+//     "age": 40,
+//     "gender": "female",
+//     "photoUrl":"https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcTTmOLDkFJGxU5kPZUCCDl3nHSTnF6DWMk75mL5MjpT_calOccQSwC5iQUmr7WYH5iw7B4t_kKSy_-ThxhYILybPxTjc1CaNnYUXnxAy95LsE_dIkOObgXWVuh1zmC2kMVlU-wIoXsuBBU&s=19"
+// }
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id; // from verifyToken middleware

@@ -1,26 +1,33 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import validator from "validator";
 
-// function Validator(data){
-//  const mandatoryField=["firstName","emailID",'password']
-//  const isAllowed=mandatoryField.every((k)=>Object.keys(data).includes(k)) 
-//  if(!isAllowed){
-//   throw new Error('some filed missing')
-//  }
+function Validator(data) {
+  const mandatoryFields = ["firstName", "emailId", "password"];
 
-//  if(!validator.isEmail(data.emailID)){
-//   throw new Error('invalid email')
-//  }
-//  //like this write others
-// }
+  mandatoryFields.forEach((field) => {
+    if (!data[field]) {
+      throw new Error(`${field} is required`);
+    }
+  });
+
+  if (!validator.isEmail(data.emailId)) {
+    throw new Error("Invalid email");
+  }
+
+  if (!validator.isStrongPassword(data.password)) {
+    throw new Error("Weak password");
+  }
+}
 // Signup
 export const signup = async (req, res) => {
   // console.log('req in signup', req);
   try {
-    const { firstName, lastName, emailId, password, gender, age,photoUrl } = req.body;
+    const { firstName, lastName, emailId, password } = req.body;
     //validate kr sakte h all data ko age jane se phle
     //validetor.js lib use kro
+    Validator(req.body);
     // Check if user exists
     const existingUser = await User.findOne({ emailId });
     if (existingUser) return res.status(400).json({ message: "User already exists" });
@@ -34,13 +41,19 @@ export const signup = async (req, res) => {
       lastName,
       emailId,
       password: hashedPassword,
-      photoUrl,
-      gender,
-      age
     });
-    res.status(201).json({ message: "User registered successfully", user });
+    const safeUser = {
+      _id: user._id,
+      firstName: user.firstName,
+      emailId: user.emailId,
+    };
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user: safeUser,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -62,16 +75,24 @@ export const signin = async (req, res) => {
     // Generate JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
+    const safeUser = {
+      _id: user._id,
+      firstName: user.firstName,
+      emailId: user.emailId,
+    };
+
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       path: "/",                  // ✅ required
       maxAge: 24 * 60 * 60 * 1000 // ✅ 1 day in milliseconds
-    }).json(user);
+    }).json(safeUser);
 
+    console.log('safeuser',safeUser);
 
-  } catch (error) {
+  } catch (error) { 
     res.status(500).json({ message: error.message });
   }
 };
@@ -81,7 +102,7 @@ export const logout = async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: false, // only secure in prod // process.env.NODE_ENV === "production",
+      secure: true, // only secure in prod // process.env.NODE_ENV === "production",
       sameSite: "strict", // prevent CSRF
     });
     // secure: false → the cookie will also be sent over HTTP (in local development).
