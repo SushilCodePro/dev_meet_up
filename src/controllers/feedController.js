@@ -19,12 +19,18 @@ export const feed = async (req, res) => {
             hideUsersfromFeed.add(req.toUserId.toString());
         })
 
+        // const userFeed = await User.find({
+        //     $and: [
+        //         { _id: { $nin: Array.from(hideUsersfromFeed) } },
+        //         { _id: { $ne: userId } }
+        //     ]
+        // }).select("firstName lastName age gender")
         const userFeed = await User.find({
-            $and: [
-                { _id: { $nin: Array.from(hideUsersfromFeed) } },
-                { _id: { $ne: userId } }
-            ]
-        }).select("firstName lastName age gender")
+            _id: {
+                $nin: [...hideUsersfromFeed],
+                $ne: userId
+            }
+        }).select("firstName lastName age gender");
         res.status(200).json({
             message: "Feeds fetched successfully",
             data: userFeed,

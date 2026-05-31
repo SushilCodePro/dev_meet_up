@@ -41,10 +41,10 @@ export const updateProfile = async (req, res) => {
     const { firstName, lastName, emailId, age, gender, skills, photoUrl } = req.body;
 
     // Validate (basic)
-    if (!firstName || !lastName || !emailId) {
-      return res.status(400).json({ message: "First name, last name, and email are required" });
-    }
-    const ALLOWED_UPDATE = ['age', 'gender', 'skills', 'photoUrl']
+    // if (!firstName || !lastName || !emailId) {
+    //   return res.status(400).json({ message: "First name, last name, and email are required" });
+    // }
+    const ALLOWED_UPDATE = ['age', 'gender', 'skills', 'photoUrl', 'about']
     const isAllowedUpdate = Object.keys(req.body).every(k => ALLOWED_UPDATE.includes(k));
 
     if (!isAllowedUpdate) {
@@ -53,7 +53,7 @@ export const updateProfile = async (req, res) => {
     // Update user in DB
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { firstName, lastName, emailId, age, gender },
+      {age, gender, skills, photoUrl},
       { new: true, runValidators: true, select: "-password" } // return updated doc & exclude password
       // runValidators: By default, validators(schema validations) only run on save() / create(), not on update.
     );
