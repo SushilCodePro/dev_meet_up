@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+// import { use } from "react";
 import validator from "validator";
 
 function Validator(data) {
@@ -24,7 +25,8 @@ function Validator(data) {
 export const signup = async (req, res) => {
   // console.log('req in signup', req);
   try {
-    const { firstName, lastName, emailId, password } = req.body;
+    const { firstName, lastName, emailId, password, age, gender } = req.body;
+    console.log({emailId,password})
     //validate kr sakte h all data ko age jane se phle
     //validetor.js lib use kro
     Validator(req.body);
@@ -41,6 +43,8 @@ export const signup = async (req, res) => {
       lastName,
       emailId,
       password: hashedPassword,
+      age,
+      gender,
     });
     const safeUser = {
       _id: user._id,
@@ -61,7 +65,7 @@ export const signup = async (req, res) => {
 export const signin = async (req, res) => {
   try {
     const { emailId, password } = req.body;
-
+    console.log({emailId,password})
     //validate kr sakte h all data ko age jane se phle
     //validetor.js lib use kro
     // Check user
@@ -77,8 +81,11 @@ export const signin = async (req, res) => {
 
     const safeUser = {
       _id: user._id,
-      firstName: user.firstName,
-      emailId: user.emailId,
+      firstName: user?.firstName,
+      lastName:user?.lastName,
+      emailId: user?.emailId,
+      age: user?.age,
+      gender: user?.gender,
     };
 
 

@@ -44,7 +44,7 @@ export const updateProfile = async (req, res) => {
     // if (!firstName || !lastName || !emailId) {
     //   return res.status(400).json({ message: "First name, last name, and email are required" });
     // }
-    const ALLOWED_UPDATE = ['age', 'gender', 'skills', 'photoUrl', 'about']
+    const ALLOWED_UPDATE = ['age', 'gender', 'skills', 'photoUrl', 'about','firstName', 'lastName']
     const isAllowedUpdate = Object.keys(req.body).every(k => ALLOWED_UPDATE.includes(k));
 
     if (!isAllowedUpdate) {
