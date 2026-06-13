@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 // import { use } from "react";
 import validator from "validator";
+import redisClient from "../config/redis.js";
 
 function Validator(data) {
   const mandatoryFields = ["firstName", "emailId", "password"];
@@ -26,7 +27,7 @@ export const signup = async (req, res) => {
   // console.log('req in signup', req);
   try {
     const { firstName, lastName, emailId, password, age, gender } = req.body;
-    console.log({emailId,password})
+    console.log({ emailId, password })
     //validate kr sakte h all data ko age jane se phle
     //validetor.js lib use kro
     Validator(req.body);
@@ -65,7 +66,7 @@ export const signup = async (req, res) => {
 export const signin = async (req, res) => {
   try {
     const { emailId, password } = req.body;
-    console.log({emailId,password})
+    console.log({ emailId, password })
     //validate kr sakte h all data ko age jane se phle
     //validetor.js lib use kro
     // Check user
@@ -82,7 +83,7 @@ export const signin = async (req, res) => {
     const safeUser = {
       _id: user._id,
       firstName: user?.firstName,
-      lastName:user?.lastName,
+      lastName: user?.lastName,
       emailId: user?.emailId,
       age: user?.age,
       gender: user?.gender,
@@ -97,9 +98,9 @@ export const signin = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000 // ✅ 1 day in milliseconds
     }).json(safeUser);
 
-    console.log('safeuser',safeUser);
+    console.log('safeuser', safeUser);
 
-  } catch (error) { 
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -107,13 +108,23 @@ export const signin = async (req, res) => {
 //logout
 export const logout = async (req, res) => {
   try {
+    const token = req.cookies.token;
+
+    if (token) {
+      const payload = jwt.decode(token);
+      if (payload && payload.exp) {
+        await redisClient.set(`token-${token}`, 'Blocked');
+        await redisClient.expireAt(`token-${token}`, payload.exp);
+      }
+    }
+
     res.clearCookie("token", {
       httpOnly: true,
       secure: true, // only secure in prod // process.env.NODE_ENV === "production",
-      sameSite: "strict", // prevent CSRF
+      sameSite: "none",
+      path: "/",
     });
-    // secure: false → the cookie will also be sent over HTTP (in local development).
-    // secure: true → the cookie will only be sent by the browser over HTTPS (not HTTP).
+
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
