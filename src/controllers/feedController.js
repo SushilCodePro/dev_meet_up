@@ -48,7 +48,7 @@ export const feed = async (req, res) => {
 
     // Current page users
     const users = await User.find(query)
-      .select("firstName lastName age gender")
+      .select("firstName lastName age gender skills photoUrl location about status")
       .skip(skip)
       .limit(limit);
 

@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         // required: true,
         minlength: 3,
-    }, 
+    },
     emailId: {
         type: String,
         required: true,
@@ -30,24 +30,33 @@ const userSchema = new mongoose.Schema({
     gender: {
         type: String,
         lowercase: true,
-        validate(value){
-            if(!['male','female', 'others'].includes(value)){
+        validate(value) {
+            if (!['male', 'female', 'others'].includes(value)) {
                 throw new Error("gender is not valid")
             }
         }
     },
     photoUrl: {
-        type:String
+        type: String
     },
-    skills:{
-        type:[String]
+    skills: {
+        type: [String]
     },
-    about:{
+    about: {
         type: String,
-        default:"This default about"
+        default: "This default about"
+    },
+    status: {
+        type: String,
+        enum: ["online", "offline"],
+        default: "offline"
+    },
+    location: {
+        type: String,
+        default: "Unknown"
     }
 
-},{timestamps:true});
+}, { timestamps: true });
 
 // Hash password before saving
 // userSchema.pre("save", async function (next) {

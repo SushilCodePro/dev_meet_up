@@ -1,7 +1,6 @@
 
-
 import User from "../models/userModel.js";
-
+import { uploadToCloudinary } from "../utils/cloudinaryHelper.js";
 export const profile = async (req, res) => {
   try {
     // req.user was set by verifyToken middleware
@@ -38,13 +37,13 @@ export const updateProfile = async (req, res) => {
     const userId = req.user.id; // from verifyToken middleware
 
     // Take input fields from request body
-    const { firstName, lastName, emailId, age, gender, skills, photoUrl } = req.body;
+    const { firstName, lastName, age, gender, skills, photoUrl, location } = req.body;
 
     // Validate (basic)
     // if (!firstName || !lastName || !emailId) {
     //   return res.status(400).json({ message: "First name, last name, and email are required" });
     // }
-    const ALLOWED_UPDATE = ['firstName', 'lastName','age', 'gender', 'skills', 'photoUrl', 'about']
+    const ALLOWED_UPDATE = ['firstName', 'lastName', 'age', 'gender', 'skills', 'photoUrl', 'about', 'location']
     const isAllowedUpdate = Object.keys(req.body).every(k => ALLOWED_UPDATE.includes(k));
 
     if (!isAllowedUpdate) {
@@ -53,7 +52,7 @@ export const updateProfile = async (req, res) => {
     // Update user in DB
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {firstName, lastName, age, gender, skills, photoUrl},
+      { firstName, lastName, age, gender, skills, photoUrl, location },
       { new: true, runValidators: true, select: "-password" } // return updated doc & exclude password
       // runValidators: By default, validators(schema validations) only run on save() / create(), not on update.
     );
@@ -68,5 +67,36 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.user.id; // from verifyToken middleware
+
+    // Check if file exists in the request
+    if (!req.file) {
+      return res.status(400).json({ message: "No image file provided" });
+    }
+
+    // Upload the file buffer to Cloudinary
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+
+    // Update user in DB with the new photoUrl
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { photoUrl: cloudinaryResult.secure_url },
+      { new: true, select: "-password" }
+    );
+
+    res.status(200).json({
+      message: "Profile photo uploaded successfully",
+      photoUrl: cloudinaryResult.secure_url,
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error("Profile photo upload error:", error);
+    res.status(500).json({ message: "Failed to upload photo" });
   }
 };
