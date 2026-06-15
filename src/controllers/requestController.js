@@ -33,6 +33,7 @@ export const myConnection = async (req, res) => {
         const userId = req.user.id;
 
         const connections = await ConnectionRequest.find({
+        const connections = await ConnectionRequest.find({
             $or: [
                 { toUserId: userId, status: "accepted" },
                 { fromUserId: userId, status: "accepted" }
