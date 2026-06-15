@@ -32,7 +32,7 @@ export const myConnection = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const connection = await ConnectionRequest.find({
+        const connections = await ConnectionRequest.find({
             $or: [
                 { toUserId: userId, status: "accepted" },
                 { fromUserId: userId, status: "accepted" }
@@ -42,8 +42,15 @@ export const myConnection = async (req, res) => {
             { path: "toUserId", select: "firstName lastName age gender" }
         ]);
 
+        const filteredConnections = connections.map((conn) => {
+            if (conn.fromUserId._id.toString === userId) {
+                return conn.toUserId; // show other person
+            }
 
-        if (!connection || connection.length === 0) {
+            return conn.fromUserId;
+        });
+
+        if (!filteredConnections || filteredConnections.length === 0) {
             return res.status(200).json({
                 message: "No connection requests found",
                 data: [],
@@ -52,7 +59,7 @@ export const myConnection = async (req, res) => {
 
         res.status(200).json({
             message: "Connection requests fetched successfully",
-            data: connection,
+            data: filteredConnections,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
