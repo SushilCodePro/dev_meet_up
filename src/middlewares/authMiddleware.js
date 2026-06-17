@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import redisClient from "../config/redis.js";
 
 export const verifyToken = async (req, res, next) => {
-  const token = req.cookies.token || req.headers["authorization"]?.replace("Bearer ", "");
+  const token = process.env.JWT_ACCESS_SECRET || req.headers["authorization"]?.replace("Bearer ", "");
 
   if (!token) {
     return res.status(401).json({ message: "Access denied. No token provided." });

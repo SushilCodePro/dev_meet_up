@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 // import { use } from "react";
 import validator from "validator";
 import redisClient from "../config/redis.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
+import { use } from "react";
 
 function Validator(data) {
   const mandatoryFields = ["firstName", "emailId", "password"];
@@ -78,7 +80,12 @@ export const signin = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
     // Generate JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const accessToken=generateAccessToken(user._id)
+    const refreshToken=generateRefreshToken(user._id)
+    user.refreshToken=refreshToken;
+
+    await user.save();
 
     const safeUser = {
       _id: user._id,
@@ -94,13 +101,36 @@ export const signin = async (req, res) => {
     };
 
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",                  // ✅ required
-      maxAge: 24 * 60 * 60 * 1000 // ✅ 1 day in milliseconds
-    }).json(safeUser);
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: "none",
+    //   path: "/",                  // ✅ required
+    //   maxAge: 24 * 60 * 60 * 1000 // ✅ 1 day in milliseconds
+    // }).json(safeUser);
+
+      res.cookies(
+        'accessToken',
+        accessToken,
+        {
+          httpOnly:true,
+          sameSite:'lax',
+          secure:false,
+          maxAge:15*60*1000
+        }
+      );
+
+      res.cookies(
+        'refreshToken',
+        refreshToken,
+        {
+          httpOnly:true,
+          sameSite:'lax',
+          secure:false,
+          maxAge:7*24*60*60*1000
+        }
+      );
+      res.status(200).json({safeUser})
 
     console.log('safeuser', safeUser);
 

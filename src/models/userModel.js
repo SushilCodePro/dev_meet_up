@@ -54,6 +54,10 @@ const userSchema = new mongoose.Schema({
     location: {
         type: String,
         default: "Unknown"
+    },
+    refreshToken:{
+        type:String,
+        default:null,
     }
 
 }, { timestamps: true });

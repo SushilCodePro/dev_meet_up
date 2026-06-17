@@ -8,6 +8,7 @@ import connectDB from "./config/db.js";
 import redisClient from "./config/redis.js";
 import cors from "cors";
 import feedRoute from "./routes/feedRoute.js";
+import refreshRoute from "./routes/refreshRoute.js"
 
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/user/auth", authRoutes);
+app.use("/api/auth", refreshRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/user/request", connectionRoutes);
 app.use("/user", feedRoute);
