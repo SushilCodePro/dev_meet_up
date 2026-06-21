@@ -30,15 +30,15 @@ export const refresh = async (req, res) => {
 
         res.cookie("accessToken", newAccess, {
             httpOnly: true,
-            sameSite: "lax",
-            secure: false, // set to true in production
+            sameSite: "none",
+            secure: true, // set to true in production
             maxAge: 15 * 60 * 1000
         });
 
         res.cookie("refreshToken", newRefresh, {
             httpOnly: true,
-            sameSite: "lax",
-            secure: false, // set to true in production
+            sameSite: "none",
+            secure: true, // set to true in production
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 

@@ -114,8 +114,8 @@ export const signin = async (req, res) => {
       accessToken,
       {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
+        sameSite: 'none',
+        secure: true,
         maxAge: 15 * 60 * 1000
       }
     );
