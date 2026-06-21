@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import redisClient from "../config/redis.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
-import { use } from "react";
+// import { use } from "react";
 
 function Validator(data) {
   const mandatoryFields = ["firstName", "emailId", "password"];
@@ -81,9 +81,9 @@ export const signin = async (req, res) => {
 
     // Generate JWT
     // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    const accessToken=generateAccessToken(user._id)
-    const refreshToken=generateRefreshToken(user._id)
-    user.refreshToken=refreshToken;
+    const accessToken = generateAccessToken(user._id)
+    const refreshToken = generateRefreshToken(user._id)
+    user.refreshToken = refreshToken;
 
     await user.save();
 
@@ -109,28 +109,28 @@ export const signin = async (req, res) => {
     //   maxAge: 24 * 60 * 60 * 1000 // ✅ 1 day in milliseconds
     // }).json(safeUser);
 
-      res.cookies(
-        'accessToken',
-        accessToken,
-        {
-          httpOnly:true,
-          sameSite:'lax',
-          secure:false,
-          maxAge:15*60*1000
-        }
-      );
+    res.cookie(
+      'accessToken',
+      accessToken,
+      {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+        maxAge: 15 * 60 * 1000
+      }
+    );
 
-      res.cookies(
-        'refreshToken',
-        refreshToken,
-        {
-          httpOnly:true,
-          sameSite:'lax',
-          secure:false,
-          maxAge:7*24*60*60*1000
-        }
-      );
-      res.status(200).json({safeUser})
+    res.cookie(
+      'refreshToken',
+      refreshToken,
+      {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      }
+    );
+    res.status(200).json({ safeUser })
 
     console.log('safeuser', safeUser);
 
@@ -142,20 +142,35 @@ export const signin = async (req, res) => {
 //logout
 export const logout = async (req, res) => {
   try {
-    const token = req.cookies.token;
+    const accessToken = req.cookies.accessToken;
 
-    if (token) {
-      const payload = jwt.decode(token);
+    if (accessToken) {
+      const payload = jwt.decode(accessToken);
       if (payload && payload.exp) {
-        await redisClient.set(`token-${token}`, 'Blocked');
-        await redisClient.expireAt(`token-${token}`, payload.exp);
+        await redisClient.set(`accessToken-${accessToken}`, 'Blocked');
+        await redisClient.expireAt(`accessToken-${accessToken}`, payload.exp);
       }
     }
 
-    res.clearCookie("token", {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      const payload = jwt.decode(refreshToken);
+      if (payload && payload.userId) {
+        await User.findByIdAndUpdate(payload.userId, { $unset: { refreshToken: 1 } });
+      }
+    }
+
+    res.clearCookie("accessToken", {
       httpOnly: true,
-      secure: true, // only secure in prod // process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: false, // only secure in prod // process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false, // only secure in prod
+      sameSite: "lax",
       path: "/",
     });
 
