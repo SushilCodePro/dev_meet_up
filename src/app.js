@@ -7,6 +7,7 @@ import connectionRoutes from "./routes/connectionRoutes.js";
 import connectDB from "./config/db.js";
 import redisClient from "./config/redis.js";
 import cors from "cors";
+import helmet from "helmet";
 import feedRoute from "./routes/feedRoute.js";
 import refreshRoute from "./routes/refreshRoute.js"
 
@@ -14,6 +15,7 @@ import refreshRoute from "./routes/refreshRoute.js"
 const app = express();
 app.set("trust proxy", 1);
 // Middlewares
+app.use(helmet());
 app.use(cors({
   origin: ["https://developersadda.netlify.app", "http://localhost:5173"],
   // origin: "http://localhost:5173",
@@ -32,7 +34,7 @@ app.use("/user", feedRoute);
 async function InitializeConnection() {
   try {
 
-    await Promise.all([connectDB(), redisClient.connect()]);
+    await connectDB();
     console.log("DB and Redis Connected");
 
     app.listen(process.env.PORT, () => {
