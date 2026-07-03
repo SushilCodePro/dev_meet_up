@@ -10,7 +10,7 @@ router.post("/update", verifyToken, updateProfile);
 router.post(
     "/upload-photo",
     verifyToken,                 // 1. Ensure user is logged in
-    uploadMiddleware.single('photo'), // 2. Catch the file and put it in memory
+    uploadMiddleware.single('photo'), // 2. Catch the file and put it in memory //single("video"), .single("document"),
     uploadProfilePhoto           // 3. Send to Cloudinary & update MongoDB
 );
 
