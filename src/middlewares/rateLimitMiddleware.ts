@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import redisClient from "../config/redis.js";
 import { Request, Response } from "express";
@@ -19,13 +19,22 @@ export const authRateLimiter = rateLimit({
   skipSuccessfulRequests: true,
 
   // Use Redis as the distributed store
-  store: new RedisStore({
-    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+  store: new RedisStore({ //runs asynchronously immediately after keyGenerator
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args), //
     prefix: "rl:auth:", // Add prefix to differentiate from other Redis keys
+
+    //...arg
+    // [
+    //   "INCR",
+    //   "rl:auth:49.36.11.20"
+    // ]
   }),
 
-  // Optional: Phase 2 custom key generator hook 
-  // keyGenerator: (req: Request) => {
-  //   return `${req.ip}:${req.body.emailId || ''}`;
-  // }
+  // Custom key generator hook: combine IP and Email to protect shared corporate IPs
+  keyGenerator: (req: Request, res: Response) => {
+    // Use express-rate-limit's built-in ipKeyGenerator to safely handle IPv6 addresses
+    const ip = ipKeyGenerator(req.ip || req.socket.remoteAddress || "unknown");
+    const email = req.body?.emailId ? `:${req.body.emailId}` : '';
+    return `${ip}${email}`;
+  }
 });
