@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/user/auth", authRoutes);
-app.use("/api/auth", refreshRoute);
+app.use("/user/auth/refresh", refreshRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/user/request", connectionRoutes);
 app.use("/user", feedRoute);
