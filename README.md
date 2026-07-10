@@ -152,3 +152,12 @@ dev-meet-up/
        ```bash
        npm start
        ```
+
+Rate‑Limiting & IP Ban:
+1-IP + Email Level Blocking (keyGenerator):: This ensures that rate limits apply to a specific email on a specific IP, which correctly prevents a whole office (sharing one IP) from being blocked just because one user got their password wrong multiple times.
+
+2-Distributed Counting (RedisStore): This means the rate limit counters are stored in a centralized Redis database. If you scale your Node.js application to multiple instances (e.g., behind a load balancer), they all share the same count.
+
+3-Checked at the Route Level : This protects these specific vulnerable endpoints without slowing down the rest of your app.
+
+4-skipSuccessfulRequests: true :  It ensures users don't burn through their rate limit quota with successful logins!

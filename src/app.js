@@ -9,7 +9,10 @@ import redisClient from "./config/redis.js";
 import cors from "cors";
 import helmet from "helmet";
 import feedRoute from "./routes/feedRoute.js";
-import refreshRoute from "./routes/refreshRoute.js"
+import refreshRoute from "./routes/refreshRoute.js";
+
+// Initialize Background Workers
+import { emailWorker } from './jobs/emailWorker.js';
 
 
 const app = express();
@@ -47,7 +50,21 @@ async function InitializeConnection() {
 }
 
 
-InitializeConnection();
+const server = InitializeConnection();
+
+// Graceful Shutdown for BullMQ Worker (Crucial for Render restarts)
+async function gracefulShutdown() {
+  console.log('Shutting down gracefully...');
+  if (emailWorker) {
+    await emailWorker.close();
+    console.log('BullMQ Worker closed');
+  }
+  process.exit(0);
+}
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
 // Server listen
 // const PORT = process.env.PORT || 3000;
 // app.listen(PORT, () => {

@@ -114,8 +114,8 @@ export const signin = async (req, res) => {
       accessToken,
       {
         httpOnly: true,
-        sameSite: 'none',
-        secure: true,
+        sameSite: 'none', // say browser that,in next request, send cookie  even FE diffrent domain 
+        secure: true, // say browser to store it if request is https and send in nest request
         maxAge: 15 * 60 * 1000
       }
     );
