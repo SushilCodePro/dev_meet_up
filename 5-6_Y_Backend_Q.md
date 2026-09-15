@@ -2,6 +2,26 @@
 
 ---
 
+## 💡 What We Are Doing Here (Preparation Context & Strategy)
+
+This document is a comprehensive, production-grade technical interview guide specifically designed for a **Senior Fullstack AI / Node.js Developer (5–6 Years of Experience)** interviewing at Big 4, top MNCs, and product companies.
+
+### Candidate Profile & Project Context:
+1. **Primary Project (`dev-meet-up`):** A fullstack developer networking platform built with **Node.js, Express, MongoDB, and Redis**. Key features include JWT authentication with Redis token revocation, background job processing with **BullMQ**, graph-like user recommendations (`$nin`), and compound indexed databases.
+2. **AI Engine Project (`Lect12&13_RAG`):** An enterprise **Retrieval-Augmented Generation (RAG)** pipeline utilizing **Google Gemini LLM, Gemini Embeddings (`gemini-embedding-001`), LangChain (LCEL `RunnableSequence`), and Pinecone Vector Database**.
+
+### The 3 Core Interview Pillars Covered:
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        SENIOR INTERVIEW BLUEPRINT                      │
+├──────────────────────────────┬──────────────────────────┬──────────────┤
+│ 1. Core Backend & Node.js    │ 2. System Design & Scale │ 3. AI & RAG  │
+│          (40%)               │          (30%)           │    (30%)     │
+└──────────────────────────────┴──────────────────────────┴──────────────┘
+```
+
+---
+
 ## 📌 Table of Contents
 1. [Question 1: Production RAG Bottlenecks & Optimizations](#question-1-production-rag-bottlenecks--optimizations)
 2. [Question 2: Node.js Event Loop & Concurrency Under Heavy Load](#question-2-nodejs-event-loop--concurrency-under-heavy-load)
@@ -16,6 +36,7 @@
 11. [Question 11: CDN Configuration, Costs, and Dynamic Data Headers](#question-11-cdn-configuration-costs-and-dynamic-data-headers)
 12. [Question 12: Is Unit Testing Mandatory for 5-6 YOE Engineers in 2026?](#question-12-is-unit-testing-mandatory-for-5-6-yoe-engineers-in-2026)
 13. [Question 13: Database Indexing, B-Tree, ESR Rule & MongoDB Aggregations](#question-13-database-indexing-b-tree-esr-rule--mongodb-aggregations)
+14. [Question 14: Rate Limiting & API Security in Redis (Sliding Window Log)](#question-14-rate-limiting--api-security-in-redis-sliding-window-log)
 
 ---
 
@@ -324,3 +345,52 @@ We use **Vitest / Jest** with **React Testing Library** for frontend component r
    * Use `$project` to drop unneeded fields early and reduce RAM overhead across pipeline stages.
    * Ensure foreign keys inside `$lookup` joins are indexed on both collections.
    * Use `$facet` to retrieve paginated results and total counts in a single database round-trip.
+
+---
+
+### Question 14: Rate Limiting & API Security in Redis (Sliding Window Log)
+
+**Interviewer:** *"To protect your authentication endpoints (`POST /login`) and expensive AI/RAG APIs from brute-force attacks and abuse, you need to implement Rate Limiting. What algorithm would you choose (Token Bucket vs. Sliding Window Log), how do you implement a Sliding Window rate limiter using Redis sorted sets (`ZSET`), and how do you handle race conditions in distributed servers?"*
+
+#### Answer (Senior Level - 5–6 YOE):
+"In a microservices or multi-instance Node.js architecture, rate limiting must be **centralized in Redis** so that limits are enforced across all application instances.
+
+1. **Sliding Window Log vs. Fixed Window:** Fixed Window counters can be exploited by sending requests at window boundaries (e.g. 100 at 12:00:59 and 100 at 12:01:01). **Sliding Window Log** tracks exact request timestamps over a rolling 60s window, making it the most secure algorithm for Auth & AI APIs.
+
+2. **Redis Implementation using Sorted Sets (`ZSET`):**
+```javascript
+import redis from '../config/redisClient.js';
+
+const slidingWindowRateLimiter = async (ip, limit = 10, windowInSeconds = 60) => {
+  const key = `rate_limit:${ip}`;
+  const now = Date.now();
+  const windowStart = now - (windowInSeconds * 1000);
+
+  const pipeline = redis.pipeline();
+
+  // 1. Remove old timestamps outside current 60s window
+  pipeline.zremrangebyscore(key, 0, windowStart);
+
+  // 2. Count active requests in window
+  pipeline.zcard(key);
+
+  // 3. Add current request timestamp
+  pipeline.zadd(key, now, `${now}:${Math.random()}`);
+
+  // 4. Set key TTL for auto cleanup
+  pipeline.expire(key, windowInSeconds);
+
+  const results = await pipeline.exec();
+  const requestCount = results[1][1];
+
+  if (requestCount >= limit) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  return { allowed: true, remaining: limit - requestCount - 1 };
+};
+```
+
+3. **Handling Race Conditions in Distributed Servers:**
+   * Use **Redis Pipelines** or single **Redis Lua Scripts** to ensure execution is atomic across multiple concurrent Node.js server instances.
+   * Return standard RFC headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `HTTP 429 Too Many Requests`.
