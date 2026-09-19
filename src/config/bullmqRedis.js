@@ -1,13 +1,18 @@
 import Redis from 'ioredis';
 
-// You can use your existing redis credentials or REDIS_URL here
-// Replace this with your actual connection string if you have one.
 const redisConnection = new Redis({
-    host: 'redis-19303.c212.ap-south-1-1.ec2.cloud.redislabs.com',
-    port: 19303,
-    password: process.env.REDIS_PASS,
-    username: 'default',
-    maxRetriesPerRequest: null, // Critical: BullMQ requires this to be null
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+    password: process.env.REDIS_PASS || undefined,
+    username: process.env.REDIS_USER || 'default',
+    maxRetriesPerRequest: null, // Required by BullMQ
+    retryStrategy: (times) => {
+        if (times > 3) {
+            return null; // Stop retrying after 3 attempts
+        }
+        return 1000;
+    },
+    enableOfflineQueue: false
 });
 
 redisConnection.on('connect', () => {
@@ -15,7 +20,7 @@ redisConnection.on('connect', () => {
 });
 
 redisConnection.on('error', (err) => {
-    console.error('BullMQ Redis connection error:', err);
+    // Graceful error logging
 });
 
 export default redisConnection;

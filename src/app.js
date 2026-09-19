@@ -1,3 +1,5 @@
+import "./instrument.js";
+import * as Sentry from "@sentry/node";
 import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -27,12 +29,20 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Debug route to test Sentry
+app.get("/debug-sentry", function mainHandler(req, res) {
+  throw new Error("Sentry Test Error from dev-meet-up!");
+});
+
 // Routes
 app.use("/user/auth", authRoutes);
 app.use("/user/auth/refresh", refreshRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/user/request", connectionRoutes);
 app.use("/user", feedRoute);
+
+// Sentry error handler must be registered AFTER all controllers and BEFORE any other error middleware
+Sentry.setupExpressErrorHandler(app);
 
 async function InitializeConnection() {
   try {
