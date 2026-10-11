@@ -7,12 +7,10 @@ const redisConnection = new Redis({
     username: process.env.REDIS_USER || 'default',
     maxRetriesPerRequest: null, // Required by BullMQ
     retryStrategy: (times) => {
-        if (times > 3) {
-            return null; // Stop retrying after 3 attempts
-        }
-        return 1000;
+        // Exponential backoff retry strategy up to 3 seconds
+        return Math.min(times * 500, 3000);
     },
-    enableOfflineQueue: false
+    enableOfflineQueue: true // Required for BullMQ worker stability during temporary disconnects
 });
 
 redisConnection.on('connect', () => {
@@ -20,7 +18,8 @@ redisConnection.on('connect', () => {
 });
 
 redisConnection.on('error', (err) => {
-    // Graceful error logging
+    console.error('BullMQ Redis Error:', err.message);
 });
 
 export default redisConnection;
+

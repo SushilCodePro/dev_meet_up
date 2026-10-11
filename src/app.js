@@ -44,6 +44,28 @@ app.use("/user", feedRoute);
 // Sentry error handler must be registered AFTER all controllers and BEFORE any other error middleware
 Sentry.setupExpressErrorHandler(app);
 
+// Global Centralized Error Handler (Dev vs Prod)
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const isProd = process.env.NODE_ENV === "production";
+
+  if (isProd) {
+    // 🔒 PRODUCTION: Hide stack trace, keep response safe & clean
+    res.status(statusCode).json({
+      success: false,
+      message: err.isOperational ? err.message : "Internal Server Error",
+    });
+  } else {
+    // 🛠️ DEVELOPMENT: Show everything so you can debug easily!
+    res.status(statusCode).json({
+      success: false,
+      message: err.message,
+      stack: err.stack, // Shows exact file and line number
+      error: err,
+    });
+  }
+});
+
 async function InitializeConnection() {
   try {
 
