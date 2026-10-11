@@ -1,3 +1,5 @@
+import "./instrument.js";
+import * as Sentry from "@sentry/node";
 import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -7,13 +9,18 @@ import connectionRoutes from "./routes/connectionRoutes.js";
 import connectDB from "./config/db.js";
 import redisClient from "./config/redis.js";
 import cors from "cors";
+import helmet from "helmet";
 import feedRoute from "./routes/feedRoute.js";
-import refreshRoute from "./routes/refreshRoute.js"
+import refreshRoute from "./routes/refreshRoute.js";
+
+// Initialize Background Workers
+import { emailWorker } from './jobs/emailWorker.js';
 
 
 const app = express();
 app.set("trust proxy", 1);
 // Middlewares
+app.use(helmet());
 app.use(cors({
   origin: ["https://developersadda.netlify.app", "http://localhost:5173"],
   // origin: "http://localhost:5173",
@@ -22,17 +29,47 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Debug route to test Sentry
+app.get("/debug-sentry", function mainHandler(req, res) {
+  throw new Error("Sentry Test Error from dev-meet-up!");
+});
+
 // Routes
 app.use("/user/auth", authRoutes);
-app.use("/api/auth", refreshRoute);
+app.use("/user/auth/refresh", refreshRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/user/request", connectionRoutes);
 app.use("/user", feedRoute);
 
+// Sentry error handler must be registered AFTER all controllers and BEFORE any other error middleware
+Sentry.setupExpressErrorHandler(app);
+
+// Global Centralized Error Handler (Dev vs Prod)
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const isProd = process.env.NODE_ENV === "production";
+
+  if (isProd) {
+    // 🔒 PRODUCTION: Hide stack trace, keep response safe & clean
+    res.status(statusCode).json({
+      success: false,
+      message: err.isOperational ? err.message : "Internal Server Error",
+    });
+  } else {
+    // 🛠️ DEVELOPMENT: Show everything so you can debug easily!
+    res.status(statusCode).json({
+      success: false,
+      message: err.message,
+      stack: err.stack, // Shows exact file and line number
+      error: err,
+    });
+  }
+});
+
 async function InitializeConnection() {
   try {
 
-    await Promise.all([connectDB(), redisClient.connect()]);
+    await connectDB();
     console.log("DB and Redis Connected");
 
     app.listen(process.env.PORT, () => {
@@ -45,7 +82,21 @@ async function InitializeConnection() {
 }
 
 
-InitializeConnection();
+const server = InitializeConnection();
+
+// Graceful Shutdown for BullMQ Worker (Crucial for Render restarts)
+async function gracefulShutdown() {
+  console.log('Shutting down gracefully...');
+  if (emailWorker) {
+    await emailWorker.close();
+    console.log('BullMQ Worker closed');
+  }
+  process.exit(0);
+}
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
 // Server listen
 // const PORT = process.env.PORT || 3000;
 // app.listen(PORT, () => {

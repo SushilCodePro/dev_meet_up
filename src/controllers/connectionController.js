@@ -1,5 +1,7 @@
 import ConnectionRequest from "../models/connectionModel.js";
 import User from "../models/userModel.js";
+import { emailQueue } from "../jobs/emailQueue.js";
+
 
 export const sender = async (req, res) => {
   try {
@@ -34,6 +36,18 @@ export const sender = async (req, res) => {
     }
 
     const connectionRequest = await ConnectionRequest.create({ fromUserId, toUserId, status });
+    
+    // Add job to email queue (Background Processing)
+    const fromUser = await User.findById(fromUserId);
+    
+    console.log(`[Queue] Adding connectionRequest job for recipient: ${user.emailId}...`);
+    await emailQueue.add('connectionRequest', { 
+        senderName: fromUser ? fromUser.firstName : 'Someone', 
+        recipientEmail: user.emailId,
+        recipientName: user.firstName
+    });
+    console.log(`[Queue] Job added successfully! Proceeding to send API response.`);
+
     res.status(201).json({ message: "Connection request send successfully!", data: connectionRequest })
 
   } catch (error) {
