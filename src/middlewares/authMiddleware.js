@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import redisClient from "../config/redis.js";
+import * as Sentry from "@sentry/node";
 
 export const verifyToken = async (req, res, next) => {
   const token = req.cookies.accessToken || req.headers["authorization"]?.replace("Bearer ", "");
@@ -20,6 +21,13 @@ export const verifyToken = async (req, res, next) => {
     }
 
     req.user = decoded; // attach user info to request
+
+    // 🚀 Senior Observability: Attach user identity to Sentry scope
+    Sentry.setUser({
+      id: decoded.id,
+      email: decoded.emailId || decoded.email,
+    });
+
     next();
   } catch (error) {
     return res.status(403).json({ message: "Invalid or expired token" });

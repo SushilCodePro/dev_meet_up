@@ -81,8 +81,8 @@ export const signin = async (req, res) => {
 
     // Generate JWT
     // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    const accessToken = generateAccessToken(user._id)
-    const refreshToken = generateRefreshToken(user._id)
+    const accessToken = generateAccessToken(user._id, user.emailId);
+    const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
 
     await user.save();
