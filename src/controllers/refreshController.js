@@ -20,7 +20,7 @@ export const refresh = async (req, res) => {
             return res.status(401).json({ message: "Invalid" });
         }
 
-        const newAccess = generateAccessToken(user._id);
+        const newAccess = generateAccessToken(user._id, user.emailId);
 
         const newRefresh = generateRefreshToken(user._id);
 

@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken'
-export const generateAccessToken = (id) => {
+export const generateAccessToken = (id, emailId) => {
     return jwt.sign(
-        { id },
+        emailId ? { id, emailId } : { id },
         process.env.JWT_ACCESS_SECRET,
         { expiresIn: '15m' }
     )
 }
+
 
 export const generateRefreshToken = (id) => {
     return jwt.sign(
