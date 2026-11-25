@@ -1,0 +1,22 @@
+# Dependencies (Host machine ke node_modules container me copy nahi hone chahiye)
+node_modules
+
+# Environment variables & secrets (Security: credentials container image me hardcode na ho)
+.env
+.env.*
+
+# Git files
+.git
+.gitignore
+
+# Documentation & notes
+*.md
+
+# Logs & temp files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker files
+Dockerfile
+.dockerignore
