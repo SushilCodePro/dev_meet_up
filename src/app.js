@@ -7,6 +7,7 @@ import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import connectionRoutes from "./routes/connectionRoutes.js";
 import connectDB from "./config/db.js";
+import mongoose from "mongoose";
 import redisClient from "./config/redis.js";
 import cors from "cors";
 import helmet from "helmet";
@@ -28,6 +29,21 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Health check endpoint for AWS ALB Target Group
+app.get("/health", (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
+  const isRedisConnected = Boolean(redisClient?.isReady);
+  const statusCode = isDbConnected ? 200 : 503;
+
+  res.status(statusCode).json({
+    status: isDbConnected ? "ok" : "degraded",
+    uptime: process.uptime(),
+    db: isDbConnected ? "connected" : "disconnected",
+    redis: isRedisConnected ? "connected" : "disconnected",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Debug route to test Sentry
 app.get("/debug-sentry", function mainHandler(req, res) {
@@ -72,8 +88,9 @@ async function InitializeConnection() {
     await connectDB();
     console.log("DB and Redis Connected");
 
-    app.listen(process.env.PORT, () => {
-      console.log(`Server is running on port ${process.env.PORT}`);
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
     });
   }
   catch (err) {
