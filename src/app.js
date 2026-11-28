@@ -13,9 +13,12 @@ import cors from "cors";
 import helmet from "helmet";
 import feedRoute from "./routes/feedRoute.js";
 import refreshRoute from "./routes/refreshRoute.js";
+import resumeRoutes from "./routes/resumeRoutes.js";
 
-// Initialize Background Workers
-import { emailWorker } from './jobs/emailWorker.js';
+// Background workers run in a separate process (`npm run worker`) by default.
+// Set RUN_WORKERS_IN_API=true only for single-process local development.
+let emailWorker;
+let resumeWorker;
 
 
 const app = express();
@@ -54,6 +57,7 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 app.use("/user/auth", authRoutes);
 app.use("/user/auth/refresh", refreshRoute);
 app.use("/user/profile", profileRoutes);
+app.use("/user/resume", resumeRoutes);
 app.use("/user/request", connectionRoutes);
 app.use("/user", feedRoute);
 
@@ -88,6 +92,11 @@ async function InitializeConnection() {
     await connectDB();
     console.log("DB and Redis Connected");
 
+    if (process.env.RUN_WORKERS_IN_API === "true") {
+      ({ emailWorker } = await import("./jobs/emailWorker.js"));
+      ({ resumeWorker } = await import("./jobs/resumeWorker.js"));
+    }
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
@@ -106,7 +115,11 @@ async function gracefulShutdown() {
   console.log('Shutting down gracefully...');
   if (emailWorker) {
     await emailWorker.close();
-    console.log('BullMQ Worker closed');
+    console.log('Email BullMQ Worker closed');
+  }
+  if (resumeWorker) {
+    await resumeWorker.close();
+    console.log('Resume BullMQ Worker closed');
   }
   process.exit(0);
 }

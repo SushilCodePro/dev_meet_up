@@ -1,5 +1,11 @@
 import express from "express";
-import { profile, updateProfile, uploadProfilePhoto } from "../controllers/profileController.js";
+import {
+  profile,
+  updateProfile,
+  uploadProfilePhoto,
+  requestPhotoUploadUrl,
+  confirmPhotoUpload,
+} from "../controllers/profileController.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { uploadMiddleware } from "../middlewares/uploadMiddleware.js";
 
@@ -13,5 +19,7 @@ router.post(
     uploadMiddleware.single('photo'), // 2. Catch the file and put it in memory //single("video"), .single("document"),
     uploadProfilePhoto           // 3. Send to Cloudinary & update MongoDB
 );
+router.post("/photo-upload-url", verifyToken, requestPhotoUploadUrl);
+router.post("/photo-confirm", verifyToken, confirmPhotoUpload);
 
 export default router;
